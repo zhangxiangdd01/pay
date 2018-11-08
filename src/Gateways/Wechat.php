@@ -342,4 +342,10 @@ class Wechat implements GatewayApplicationInterface
             true
         );
     }
+    
+    
+     public function test()
+    {
+      
+    }
 }
