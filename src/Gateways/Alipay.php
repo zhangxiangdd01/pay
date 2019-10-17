@@ -37,10 +37,11 @@ class Alipay implements GatewayApplicationInterface
     /**
      * Const url.
      */
-    const URL = [
-        self::MODE_NORMAL => 'https://openapi.alipay.com/gateway.do',
-        self::MODE_DEV    => 'https://openapi.alipaydev.com/gateway.do',
-    ];
+    const URL
+        = [
+            self::MODE_NORMAL => 'https://openapi.alipay.com/gateway.do',
+            self::MODE_DEV    => 'https://openapi.alipaydev.com/gateway.do',
+        ];
 
     /**
      * Alipay payload.
@@ -89,7 +90,7 @@ class Alipay implements GatewayApplicationInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param string $method
-     * @param array  $params
+     * @param array $params
      *
      * @throws InvalidGatewayException
      *
@@ -106,7 +107,7 @@ class Alipay implements GatewayApplicationInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param string $gateway
-     * @param array  $params
+     * @param array $params
      *
      * @throws InvalidGatewayException
      *
@@ -123,7 +124,7 @@ class Alipay implements GatewayApplicationInterface
 
         $this->payload['biz_content'] = json_encode($params);
 
-        $gateway = get_class($this).'\\'.Str::studly($gateway).'Gateway';
+        $gateway = get_class($this) . '\\' . Str::studly($gateway) . 'Gateway';
 
         if (class_exists($gateway)) {
             return $this->makePay($gateway);
@@ -138,7 +139,7 @@ class Alipay implements GatewayApplicationInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param null|array $data
-     * @param bool       $refund
+     * @param bool $refund
      *
      * @throws InvalidSignException
      * @throws \Yansongda\Pay\Exceptions\InvalidArgumentException
@@ -172,7 +173,7 @@ class Alipay implements GatewayApplicationInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param string|array $order
-     * @param bool         $refund
+     * @param bool $refund
      *
      * @throws InvalidSignException
      * @throws \Yansongda\Pay\Exceptions\GatewayException
@@ -183,9 +184,9 @@ class Alipay implements GatewayApplicationInterface
      */
     public function find($order, $refund = false): Collection
     {
-        $this->payload['method'] = $refund ? 'alipay.trade.fastpay.refund.query' : 'alipay.trade.query';
+        $this->payload['method']      = $refund ? 'alipay.trade.fastpay.refund.query' : 'alipay.trade.query';
         $this->payload['biz_content'] = json_encode(is_array($order) ? $order : ['out_trade_no' => $order]);
-        $this->payload['sign'] = Support::generateSign($this->payload);
+        $this->payload['sign']        = Support::generateSign($this->payload);
 
         Log::info('Starting To Find An Alipay Order', [$this->gateway, $this->payload]);
 
@@ -208,9 +209,9 @@ class Alipay implements GatewayApplicationInterface
      */
     public function refund($order): Collection
     {
-        $this->payload['method'] = 'alipay.trade.refund';
+        $this->payload['method']      = 'alipay.trade.refund';
         $this->payload['biz_content'] = json_encode($order);
-        $this->payload['sign'] = Support::generateSign($this->payload);
+        $this->payload['sign']        = Support::generateSign($this->payload);
 
         Log::info('Starting To Refund An Alipay Order', [$this->gateway, $this->payload]);
 
@@ -233,9 +234,9 @@ class Alipay implements GatewayApplicationInterface
      */
     public function cancel($order): Collection
     {
-        $this->payload['method'] = 'alipay.trade.cancel';
+        $this->payload['method']      = 'alipay.trade.cancel';
         $this->payload['biz_content'] = json_encode(is_array($order) ? $order : ['out_trade_no' => $order]);
-        $this->payload['sign'] = Support::generateSign($this->payload);
+        $this->payload['sign']        = Support::generateSign($this->payload);
 
         Log::info('Starting To Cancel An Alipay Order', [$this->gateway, $this->payload]);
 
@@ -258,9 +259,9 @@ class Alipay implements GatewayApplicationInterface
      */
     public function close($order): Collection
     {
-        $this->payload['method'] = 'alipay.trade.close';
+        $this->payload['method']      = 'alipay.trade.close';
         $this->payload['biz_content'] = json_encode(is_array($order) ? $order : ['out_trade_no' => $order]);
-        $this->payload['sign'] = Support::generateSign($this->payload);
+        $this->payload['sign']        = Support::generateSign($this->payload);
 
         Log::info('Starting To Close An Alipay Order', [$this->gateway, $this->payload]);
 
@@ -283,9 +284,9 @@ class Alipay implements GatewayApplicationInterface
      */
     public function download($bill): string
     {
-        $this->payload['method'] = 'alipay.data.dataservice.bill.downloadurl.query';
+        $this->payload['method']      = 'alipay.data.dataservice.bill.downloadurl.query';
         $this->payload['biz_content'] = json_encode(is_array($bill) ? $bill : ['bill_type' => 'trade', 'bill_date' => $bill]);
-        $this->payload['sign'] = Support::generateSign($this->payload);
+        $this->payload['sign']        = Support::generateSign($this->payload);
 
         Log::info('Starting To Download The Alipay Bill', [$this->gateway, $this->payload]);
 
@@ -327,4 +328,106 @@ class Alipay implements GatewayApplicationInterface
 
         throw new InvalidGatewayException("Pay Gateway [{$gateway}] Must Be An Instance Of GatewayInterface");
     }
+
+    /**
+     * Refund an order.
+     *
+     * @author yansongda <me@yansongda.cn>
+     *
+     * @param array $order
+     *
+     * @throws InvalidSignException
+     * @throws \Yansongda\Pay\Exceptions\GatewayException
+     * @throws \Yansongda\Pay\Exceptions\InvalidConfigException
+     * @throws \Yansongda\Pay\Exceptions\InvalidArgumentException
+     *
+     * @return Collection
+     */
+    public function bind($order): Collection
+    {
+        $this->payload['method']      = 'alipay.trade.royalty.relation.bind';
+        $this->payload['biz_content'] = json_encode($order);
+        $this->payload['sign']        = Support::generateSign($this->payload);
+
+        Log::info('Starting To relation bind', [$this->gateway, $this->payload]);
+
+        return Support::requestApi($this->payload);
+    }
+
+    /**
+     * Refund an order.
+     *
+     * @author yansongda <me@yansongda.cn>
+     *
+     * @param array $order
+     *
+     * @throws InvalidSignException
+     * @throws \Yansongda\Pay\Exceptions\GatewayException
+     * @throws \Yansongda\Pay\Exceptions\InvalidConfigException
+     * @throws \Yansongda\Pay\Exceptions\InvalidArgumentException
+     *
+     * @return Collection
+     */
+    public function settle($order): Collection
+    {
+        $this->payload['method']      = 'alipay.trade.order.settle';
+        $this->payload['biz_content'] = json_encode($order);
+        $this->payload['sign']        = Support::generateSign($this->payload);
+
+        Log::info('Starting To order.settle', [$this->gateway, $this->payload]);
+
+        return Support::requestApi($this->payload);
+    }
+
+
+    /**
+     * 分账订单查询
+     *
+     * @author zhangxiang
+     *
+     * @param array $order
+     *
+     * @throws InvalidSignException
+     * @throws \Yansongda\Pay\Exceptions\GatewayException
+     * @throws \Yansongda\Pay\Exceptions\InvalidConfigException
+     * @throws \Yansongda\Pay\Exceptions\InvalidArgumentException
+     *
+     * @return Collection
+     */
+    public function query($order): Collection
+    {
+        $this->payload['method']      = 'alipay.trade.query';
+        $this->payload['biz_content'] = json_encode($order);
+        $this->payload['sign']        = Support::generateSign($this->payload);
+
+        Log::info('Starting To order.query', [$this->gateway, $this->payload]);
+
+        return Support::requestApi($this->payload);
+    }
+
+
+    /**
+     * 单笔转账到支付宝账户接口
+     *
+     * @author zhangxiang
+     *
+     * @throws InvalidSignException
+     * @throws \Yansongda\Pay\Exceptions\GatewayException
+     * @throws \Yansongda\Pay\Exceptions\InvalidConfigException
+     * @throws \Yansongda\Pay\Exceptions\InvalidArgumentException
+     *
+     * @return Collection
+     */
+    public function transfer($order): Collection
+    {
+        $this->payload['method']      = 'alipay.fund.trans.toaccount.transfer';
+        $this->payload['biz_content'] = json_encode($order);
+        $this->payload['sign']        = Support::generateSign($this->payload);
+
+        Log::info('Starting To order.query', [$this->gateway, $this->payload]);
+
+        return Support::requestApi($this->payload);
+    }
+
+
 }
