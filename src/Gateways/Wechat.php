@@ -344,8 +344,29 @@ class Wechat implements GatewayApplicationInterface
     }
     
     
-     public function test()
+    /**
+     * 请求单次分账
+     * 单次分账请求按照传入的分账接收方账号和资金进行分账，同时会将订单剩余的待分账金额解冻给特约商户。故操作成功后，订单不能再进行分账，也不能进行分账完结
+     * @author yansongda <me@yansongda.cn>
+     *
+     * @param array $order
+     *
+     * @throws GatewayException
+     * @throws InvalidSignException
+     * @throws \Yansongda\Pay\Exceptions\InvalidArgumentException
+     *
+     * @return Collection
+     */
+    public function profitsharing($order): Collection
     {
-      
+        $this->payload = Support::filterPayload($this->payload, $order);
+
+        Log::info('Starting To reverse An Wechat profitsharing', [$this->gateway, $this->payload]);
+
+        return Support::requestApi(
+            'secapi/pay/profitsharing',
+            $this->payload,
+            true
+        );
     }
 }
